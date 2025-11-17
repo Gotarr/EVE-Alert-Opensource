@@ -102,18 +102,14 @@ class TestVision(unittest.TestCase):
         self.assertIsInstance(points_high, list)
 
     def test_region_size_error(self):
-        """Test error when haystack is smaller than needle."""
+        """Test handling when haystack is smaller than needle."""
         # Create tiny haystack (smaller than 50x50 needle)
         haystack = np.zeros((30, 30, 3), dtype=np.uint8)
         
-        # Should either raise RegionSizeError or handle gracefully
-        try:
-            self.vision.find(haystack)
-        except RegionSizeError as e:
-            self.assertIn("Region is smaller", str(e))
-        except Exception:
-            # Other exceptions are also acceptable
-            pass
+        # With defensive validation, should return empty list
+        points = self.vision.find(haystack)
+        self.assertIsInstance(points, list)
+        self.assertEqual(points, [])
 
     def test_grayscale_conversion(self):
         """Test handling of grayscale images."""
@@ -179,17 +175,34 @@ class TestVision(unittest.TestCase):
         self.assertFalse(self.vision.debug_mode_faction)
 
     def test_exception_handling(self):
-        """Test exception handling in vision_process."""
-        # Create invalid haystack
+        """Test exception handling for invalid inputs."""
+        # Test with None haystack
         haystack = None
+        points = self.vision.find(haystack)
+        self.assertIsInstance(points, list)
+        self.assertEqual(points, [])
+
+    def test_invalid_haystack_type(self):
+        """Test handling of non-ndarray haystack."""
+        # Test with invalid type (string)
+        haystack = "not an array"
+        points = self.vision.find(haystack)
+        self.assertIsInstance(points, list)
+        self.assertEqual(points, [])
         
-        # Should handle exception gracefully and return empty list
-        try:
-            points = self.vision.find(haystack)
-            self.assertEqual(len(points), 0)
-        except Exception:
-            # It's also acceptable if exception is raised
-            pass
+        # Test with list instead of ndarray
+        haystack = [[1, 2], [3, 4]]
+        points = self.vision.find(haystack)
+        self.assertIsInstance(points, list)
+        self.assertEqual(points, [])
+
+    def test_haystack_smaller_than_needle(self):
+        """Test handling when haystack is smaller than needle."""
+        # Create haystack smaller than 50x50 needle
+        haystack = np.zeros((30, 30, 3), dtype=np.uint8)
+        points = self.vision.find(haystack)
+        self.assertIsInstance(points, list)
+        self.assertEqual(points, [])
 
     def test_alpha_channel_removal(self):
         """Test BGRA to BGR conversion."""

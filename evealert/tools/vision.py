@@ -192,6 +192,32 @@ class Vision:
         cv.destroyWindow(vision_mode)
 
     def find(self, haystack_img, threshold: float = 0.5) -> list:
+        # Defensive input validation
+        if haystack_img is None:
+            return []
+
+        if not isinstance(haystack_img, np.ndarray):
+            return []
+
+        # Validate haystack has valid shape
+        try:
+            haystack_shape = haystack_img.shape
+            # Check if haystack is smaller than any needle
+            for needle_img in self.needle_imgs:
+                if needle_img is not None and isinstance(needle_img, np.ndarray):
+                    try:
+                        needle_shape = needle_img.shape
+                        # Compare dimensions (height and width)
+                        if (haystack_shape[0] < needle_shape[0] or
+                                haystack_shape[1] < needle_shape[1]):
+                            return []
+                    except (AttributeError, IndexError):
+                        # If needle doesn't have proper shape, skip validation
+                        pass
+        except (AttributeError, IndexError):
+            # If haystack doesn't have proper shape, return empty
+            return []
+
         try:
             all_points, detection_image = self.vision_process(
                 haystack_img, threshold, "Enemy"
@@ -212,6 +238,32 @@ class Vision:
         return all_points
 
     def find_faction(self, haystack_img, threshold: float = 0.5) -> list:
+        # Defensive input validation
+        if haystack_img is None:
+            return []
+
+        if not isinstance(haystack_img, np.ndarray):
+            return []
+
+        # Validate haystack has valid shape
+        try:
+            haystack_shape = haystack_img.shape
+            # Check if haystack is smaller than any needle
+            for needle_img in self.needle_imgs:
+                if needle_img is not None and isinstance(needle_img, np.ndarray):
+                    try:
+                        needle_shape = needle_img.shape
+                        # Compare dimensions (height and width)
+                        if (haystack_shape[0] < needle_shape[0] or
+                                haystack_shape[1] < needle_shape[1]):
+                            return []
+                    except (AttributeError, IndexError):
+                        # If needle doesn't have proper shape, skip validation
+                        pass
+        except (AttributeError, IndexError):
+            # If haystack doesn't have proper shape, return empty
+            return []
+
         try:
             all_points, detection_image = self.vision_process(
                 haystack_img, threshold, "Faction"
